@@ -29,6 +29,9 @@ def unzip(args):
             if args.entries and file_name not in args.entries:
                 continue
 
+            if file_name.startswith(os.sep) and not args.force:
+                raise ValueError("Absolute path: %s" % file_name)
+
             # mkdir -p
             dir_name = os.path.dirname(file_name)
             try:
@@ -36,7 +39,7 @@ def unzip(args):
             except os.error:
                 pass
 
-            if not file_name.endswith('/'):
+            if not file_name.endswith(os.sep):
                 bin = z.read(zinfo)
                 with open(file_name, 'wb') as f:
                     f.write(bin)
@@ -53,6 +56,8 @@ def main(argv=sys.argv):
                         help="List entries instead of extracting")
     parser.add_argument('-P', '--password',
                         help="Enter password for encrypted")
+    parser.add_argument('--force', action='store_true',
+                        help="Extract file even if its absolute path")
     parser.add_argument('-F', '--from', metavar='ENCODING', dest='from_',
                         required=True,
                         help="Specify filename encoding from")
