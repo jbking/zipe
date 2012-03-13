@@ -2,6 +2,7 @@
 from __future__ import print_function
 import argparse
 import os
+import re
 import sys
 import zipfile
 
@@ -15,6 +16,21 @@ def zip_(args):
                 entries.extend([os.path.join(directory, f)
                                 for f in files])
         args.entries = entries
+
+    if args.include or args.exclude:
+        include = bool(args.include)
+        patterns = [re.compile(pattern)
+                    for pattern in args.include or args.exclude]
+        filtered = []
+        for entry in args.entries:
+            for pattern in patterns:
+                if pattern.search(entry):
+                    if include:
+                        filtered.append(entry)
+                else:
+                    if not include:
+                        filtered.append(entry)
+        args.entries = filtered
 
     with zipfile.ZipFile(args.zip_file, 'a') as z:
         if args.password:
@@ -44,6 +60,13 @@ def main(argv=sys.argv):
     parser.add_argument('-r', '--recursive',
                         action='store_true',
                         help="Archive recursively")
+    filter_group = parser.add_mutually_exclusive_group()
+    filter_group.add_argument('-x', '--exclude',
+                              action='append',
+                              help="Exclude file pattern in RegExp")
+    filter_group.add_argument('-i', '--include',
+                              action='append',
+                              help="Include file pattern in RegExp")
     args = parser.parse_args(argv[1:])
     zip_(args)
 
