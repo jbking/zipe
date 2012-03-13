@@ -3,22 +3,28 @@ from __future__ import print_function
 import argparse
 import getpass
 import os
+import StringIO
 import sys
 import zipfile
 
 
 def unzip(args):
     with zipfile.ZipFile(args.zip_file) as z:
+        if args.list:
+            buffer = StringIO.StringIO()
+            _stdout = sys.stdout
+            sys.stdout = buffer
+            z.printdir()
+            sys.stdout = _stdout
+            buffer.seek(0)
+            print(buffer.read().decode(args.from_).encode(args.to))
+            return
+
         if args.password:
             z.setpassword(args.password)
 
         for zinfo in z.infolist():
             file_name = zinfo.filename.decode(args.from_).encode(args.to)
-
-            if args.list:
-                print("%d\t%d/%d/%d %d:%d:%d\t%s" %
-                      ((zinfo.file_size,) + zinfo.date_time + (file_name,)))
-                continue
 
             if args.entries and file_name not in args.entries:
                 continue
