@@ -3,12 +3,21 @@ from __future__ import print_function
 import argparse
 import getpass
 import os
+import re
 import StringIO
 import sys
 import zipfile
 
 
 def unzip(args):
+    if args.include or args.exclude:
+        include = bool(args.include)
+        patterns = [re.compile(pattern)
+                    for pattern in args.include or args.exclude]
+    else:
+        include = True
+        patterns = []
+
     with zipfile.ZipFile(args.zip_file) as z:
         if args.list:
             buffer = StringIO.StringIO()
@@ -31,6 +40,16 @@ def unzip(args):
 
             if file_name.startswith(os.sep) and not args.force:
                 raise ValueError("Absolute path: %s" % file_name)
+
+            for pattern in patterns:
+                if pattern.search(file_name):
+                    if include:
+                        break
+                else:
+                    if not include:
+                        break
+            else:
+                continue
 
             # mkdir -p
             dir_name = os.path.dirname(file_name)
@@ -65,6 +84,13 @@ def main(argv=sys.argv):
                         default=sys.getfilesystemencoding(),
                         help="Specify filename encoding to "
                              "(Default sys.getfilesystemencoding())")
+    filter_group = parser.add_mutually_exclusive_group()
+    filter_group.add_argument('-x', '--exclude',
+                              action='append',
+                              help="Exclude file pattern in RegExp")
+    filter_group.add_argument('-i', '--include',
+                              action='append',
+                              help="Include file pattern in RegExp")
     args = parser.parse_args(argv[1:])
     for _ in range(3):
         try:

@@ -33,9 +33,6 @@ def zip_(args):
         args.entries = filtered
 
     with zipfile.ZipFile(args.zip_file, 'a') as z:
-        if args.password:
-            z.setpassword(args.password)
-
         for entry in args.entries:
             arcname = entry.decode(args.from_).encode(args.to)
             z.write(entry, arcname)
@@ -48,8 +45,6 @@ def main(argv=sys.argv):
                         help="The ZIP archive")
     parser.add_argument('entries', nargs='+', metavar='ENTRY',
                         help="Specify file entries in the archive to extract")
-    parser.add_argument('-P', '--password',
-                        help="Enter password for encrypted")
     parser.add_argument('-F', '--from', metavar='ENCODING', dest='from_',
                         default=sys.getfilesystemencoding(),
                         help="Specify filename encoding from"
