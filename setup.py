@@ -23,6 +23,7 @@ setup(name='zipe',
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]
+      zipe = zipe.zip:main
       unzipe = zipe.unzip:main
       """,
       )
