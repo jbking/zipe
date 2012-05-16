@@ -34,6 +34,8 @@ def zip_(args):
 
     with zipfile.ZipFile(args.zip_file, 'a') as z:
         for entry in args.entries:
+            if args.verbose:
+                print("Archiving:", entry)
             arcname = entry.decode(args.from_).encode(args.to)
             z.write(entry, arcname)
 
@@ -55,6 +57,8 @@ def main(argv=sys.argv):
     parser.add_argument('-r', '--recursive',
                         action='store_true',
                         help="Archive recursively")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="Verbose mode")
     filter_group = parser.add_mutually_exclusive_group()
     filter_group.add_argument('-x', '--exclude',
                               action='append',

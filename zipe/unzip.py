@@ -16,7 +16,7 @@ def unzip(args):
                     for pattern in args.include or args.exclude]
     else:
         include = True
-        patterns = []
+        patterns = None
 
     with zipfile.ZipFile(args.zip_file) as z:
         if args.list:
@@ -35,21 +35,29 @@ def unzip(args):
         for zinfo in z.infolist():
             file_name = zinfo.filename.decode(args.from_).encode(args.to)
 
+            if args.verbose:
+                print("Entry:", file_name)
+
             if args.entries and file_name not in args.entries:
+                if args.verbose:
+                    print("Not specified:", file_name)
                 continue
 
             if file_name.startswith(os.sep) and not args.force:
                 raise ValueError("Absolute path: %s" % file_name)
 
-            for pattern in patterns:
-                if pattern.search(file_name):
-                    if include:
-                        break
+            if patterns:
+                for pattern in patterns:
+                    if pattern.search(file_name):
+                        if include:
+                            break
+                    else:
+                        if not include:
+                            break
                 else:
-                    if not include:
-                        break
-            else:
-                continue
+                    if args.verbose:
+                        print("Excluded or not included:", file_name)
+                    continue
 
             # mkdir -p
             dir_name = os.path.dirname(file_name)
@@ -60,6 +68,8 @@ def unzip(args):
 
             if not file_name.endswith(os.sep):
                 bin = z.read(zinfo)
+                if args.verbose:
+                    print("Extracting:", file_name)
                 with open(file_name, 'wb') as f:
                     f.write(bin)
 
@@ -77,6 +87,8 @@ def main(argv=sys.argv):
                         help="Enter password for encrypted")
     parser.add_argument('--force', action='store_true',
                         help="Extract file even if its absolute path")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="Verbose mode")
     parser.add_argument('-F', '--from', metavar='ENCODING', dest='from_',
                         required=True,
                         help="Specify filename encoding from")
@@ -97,7 +109,9 @@ def main(argv=sys.argv):
             unzip(args)
             break
         except RuntimeError:
-            args.password = getpass.getpass('password:')
+            args.password = getpass.getpass('Password:')
+            if args.verbose:
+                print("Retrying")
     else:
         print("Failed to unzip", file=sys.stderr)
         sys.exit(1)
