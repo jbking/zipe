@@ -6,6 +6,8 @@ import re
 import sys
 import zipfile
 
+from zipe.util import convert
+
 
 def zip_(args):
     if args.recursive:
@@ -36,7 +38,7 @@ def zip_(args):
         for entry in args.entries:
             if args.verbose:
                 print("Archiving:", entry)
-            arcname = entry.decode(args.from_).encode(args.to)
+            arcname = convert(entry, args.from_, args.to)
             z.write(entry, arcname)
 
 

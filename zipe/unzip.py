@@ -8,6 +8,8 @@ import StringIO
 import sys
 import zipfile
 
+from zipe.util import convert
+
 
 def unzip(args):
     if args.include or args.exclude:
@@ -26,14 +28,14 @@ def unzip(args):
             z.printdir()
             sys.stdout = _stdout
             buffer.seek(0)
-            print(buffer.read().decode(args.from_).encode(args.to))
+            print(convert(buffer.read(), args.from_, args.to))
             return
 
         if args.password:
             z.setpassword(args.password)
 
         for zinfo in z.infolist():
-            file_name = zinfo.filename.decode(args.from_).encode(args.to)
+            file_name = convert(zinfo.filename, args.from_, args.to)
 
             if args.verbose:
                 print("Entry:", file_name)
