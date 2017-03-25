@@ -27,7 +27,7 @@ class ZipContext(Context):
 def zip_(context, zip_file, entries):
     entries = context.find_entries(entries)
 
-    with context.wrap(zipfile.ZipFile(zip_file, 'a')) as z:
+    with zipfile.ZipFile(zip_file, 'a') as z:
         for entry in entries:
             if not context.is_target(entry):
                 continue
@@ -50,8 +50,9 @@ def main(argv=sys.argv):
     parser.add_argument('-T', '--to', metavar='ENCODING',
                         required=True,
                         help="filename encoding to ")
-    parser.add_argument('-P', '--password',
-                        help="password for encrypted")
+    # No support
+    # parser.add_argument('-P', '--password',
+    #                     help="password for encrypted")
     parser.add_argument('-r', '--recursive',
                         action='store_true',
                         help="archive recursively")
@@ -72,7 +73,6 @@ def main(argv=sys.argv):
     context.to = args.to
     context.exclude_patterns = args.exclude
     context.include_patterns = args.include
-    context.password = args.password
     context.recursive = args.recursive
 
     zip_(context, args.zip_file, args.entries)

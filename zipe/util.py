@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import os
 import re
 import sys
 import unicodedata
@@ -41,13 +40,19 @@ class Context:
 
     def convert_zip_str_to_str(self, s):
         # http://qiita.com/methane/items/8493c10c19ca3584d31d
-        s = s.encode('cp437')
+        if self.from_ == 'cp932':
+            s = s.encode('cp437')
+            s = s.decode(self.from_)
         form = 'NFD' if sys.platform == 'darwin' else 'NFC'
-        return unicodedata.normalize(form, s.decode(self.from_))
+        return unicodedata.normalize(form, s)
 
     def convert_str_to_zip_str(self, s):
-        form = 'NFC'
-        return unicodedata.normalize(form, s).encode(self.to).decode('cp437')
+        assert self.to in ('cp932', 'utf-8'), "limited support"
+        s = unicodedata.normalize('NFC', s)
+        if self.to == 'cp932':
+            s = s.encode(self.to)
+            s = s.decode('cp437')
+        return s
 
     def is_target(self, path):
         if self._include_patterns:
@@ -66,4 +71,5 @@ class Context:
     def wrap(self, zipfile):
         if self.password:
             zipfile.setpassword(self.password.encode())
+            self.log("Set encrypt")
         return zipfile
