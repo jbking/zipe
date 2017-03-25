@@ -9,7 +9,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='zipe',
-    version='0.1.0',
+    version='0.1.2',
     description='A zip utility for cross OS, especially file name encoding problem.',
     long_description=long_description,
     url='https://github.com/jbking/zipe/',
@@ -20,7 +20,7 @@ setup(
         'Development Status :: 3 - Alpha',
         'Topic :: Utilities',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
     keywords='zip utility',
