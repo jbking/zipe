@@ -6,7 +6,7 @@ import re
 import sys
 import zipfile
 
-from zipe.util import convert
+from .util import convert
 
 
 def zip_(args):
@@ -37,37 +37,37 @@ def zip_(args):
     with zipfile.ZipFile(args.zip_file, 'a') as z:
         for entry in args.entries:
             if args.verbose:
-                print("Archiving:", entry)
+                print("Archiving:", entry, file=sys.stderr)
             arcname = convert(entry, args.from_, args.to)
             z.write(entry, arcname)
 
 
 def main(argv=sys.argv):
     parser = argparse.ArgumentParser(
-                        description="Zipper for not native filename")
+                        description="Zipper for not native encoded filename file")
     parser.add_argument('zip_file', metavar='ZIP_FILE',
-                        help="The ZIP archive")
+                        help="ZIP archive")
     parser.add_argument('entries', nargs='+', metavar='ENTRY',
-                        help="Specify file entries in the archive to extract")
+                        help="file entries")
     parser.add_argument('-F', '--from', metavar='ENCODING', dest='from_',
                         default=sys.getfilesystemencoding(),
-                        help="Specify filename encoding from"
+                        help="filename encoding from"
                              "(Default sys.getfilesystemencoding())")
     parser.add_argument('-T', '--to', metavar='ENCODING',
                         required=True,
-                        help="Specify filename encoding to ")
+                        help="filename encoding to ")
     parser.add_argument('-r', '--recursive',
                         action='store_true',
-                        help="Archive recursively")
+                        help="archive recursively")
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help="Verbose mode")
+                        help="verbose mode")
     filter_group = parser.add_mutually_exclusive_group()
     filter_group.add_argument('-x', '--exclude',
                               action='append',
-                              help="Exclude file pattern in RegExp")
+                              help="exclude file pattern in RegExp")
     filter_group.add_argument('-i', '--include',
                               action='append',
-                              help="Include file pattern in RegExp")
+                              help="include file pattern in RegExp")
     args = parser.parse_args(argv[1:])
     zip_(args)
 

@@ -4,11 +4,11 @@ import argparse
 import getpass
 import os
 import re
-import StringIO
+from io import StringIO
 import sys
 import zipfile
 
-from zipe.util import convert
+from .util import convert
 
 
 def unzip(args):
@@ -22,7 +22,7 @@ def unzip(args):
 
     with zipfile.ZipFile(args.zip_file) as z:
         if args.list:
-            buffer = StringIO.StringIO()
+            buffer = StringIO()
             _stdout = sys.stdout
             sys.stdout = buffer
             z.printdir()
@@ -38,11 +38,11 @@ def unzip(args):
             file_name = convert(zinfo.filename, args.from_, args.to)
 
             if args.verbose:
-                print("Entry:", file_name)
+                print("Entry:", file_name, file=sys.stderr)
 
             if args.entries and file_name not in args.entries:
                 if args.verbose:
-                    print("Not specified:", file_name)
+                    print("Not specified:", file_name, file=sys.stderr)
                 continue
 
             if file_name.startswith(os.sep) and not args.force:
@@ -58,7 +58,7 @@ def unzip(args):
                             break
                 else:
                     if args.verbose:
-                        print("Excluded or not included:", file_name)
+                        print("Excluded or not included:", file_name, file=sys.stderr)
                     continue
 
             # mkdir -p
@@ -71,40 +71,39 @@ def unzip(args):
             if not file_name.endswith(os.sep):
                 bin = z.read(zinfo)
                 if args.verbose:
-                    print("Extracting:", file_name)
+                    print("Extracting:", file_name, file=sys.stderr)
                 with open(file_name, 'wb') as f:
                     f.write(bin)
 
 
 def main(argv=sys.argv):
     parser = argparse.ArgumentParser(
-                        description="Unzipper for not native filename")
+                        description="Unzipper for not native encoded filename file")
     parser.add_argument('zip_file', metavar='ZIP_FILE',
-                        help="The ZIP archive")
+                        help="ZIP archive")
     parser.add_argument('entries', nargs='*', metavar='ENTRY',
-                        help="Specify file entries in the archive to extract")
+                        help="can specify file entries")
     parser.add_argument('-l', '--list', action='store_true',
-                        help="List entries instead of extracting")
+                        help="list entries instead of extracting")
     parser.add_argument('-P', '--password',
-                        help="Enter password for encrypted")
+                        help="password for encrypted")
     parser.add_argument('--force', action='store_true',
-                        help="Extract file even if its absolute path")
+                        help="extract file even if its absolute path")
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help="Verbose mode")
+                        help="verbose mode")
     parser.add_argument('-F', '--from', metavar='ENCODING', dest='from_',
                         required=True,
-                        help="Specify filename encoding from")
+                        help="filename encoding from")
     parser.add_argument('-T', '--to', metavar='ENCODING',
                         default=sys.getfilesystemencoding(),
-                        help="Specify filename encoding to "
-                             "(Default sys.getfilesystemencoding())")
+                        help="filename encoding to(Default sys.getfilesystemencoding())")
     filter_group = parser.add_mutually_exclusive_group()
     filter_group.add_argument('-x', '--exclude',
                               action='append',
-                              help="Exclude file pattern in RegExp")
+                              help="exclude filename pattern in RegExp")
     filter_group.add_argument('-i', '--include',
                               action='append',
-                              help="Include file pattern in RegExp")
+                              help="include filename pattern in RegExp")
     args = parser.parse_args(argv[1:])
     for _ in range(3):
         try:
@@ -113,7 +112,7 @@ def main(argv=sys.argv):
         except RuntimeError:
             args.password = getpass.getpass('Password:')
             if args.verbose:
-                print("Retrying")
+                print("Retrying", file=sys.stderr)
     else:
         print("Failed to unzip", file=sys.stderr)
         sys.exit(1)
