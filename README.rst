@@ -2,7 +2,6 @@ Look help at each command.
 
 ::
 
-    $ zipe -h
     usage: zipe [-h] [-F ENCODING] -T ENCODING [-r] [-v]
                 [-x EXCLUDE | -i INCLUDE]
                 ZIP_FILE ENTRY [ENTRY ...]
@@ -29,7 +28,6 @@ Look help at each command.
 
 ::
 
-    $ unzipe -h
     usage: unzipe [-h] [-l] [-P PASSWORD] [--force] -F ENCODING [-T ENCODING]
                   [-x EXCLUDE | -i INCLUDE]
                   ZIP_FILE [ENTRY [ENTRY ...]]
