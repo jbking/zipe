@@ -8,11 +8,19 @@ from io import StringIO
 import sys
 import zipfile
 
-from .util import convert, Context
+from .util import Context
 
 
 class UnzipContext(Context):
     pass
+
+
+def unzip_list(context, zip_file):
+    with zipfile.ZipFile(zip_file) as z:
+        buffer = StringIO()
+        z.printdir(file=buffer)
+        buffer.seek(0)
+        return context.convert(buffer.read())
 
 
 def unzip(context, args):
@@ -25,21 +33,11 @@ def unzip(context, args):
         patterns = None
 
     with zipfile.ZipFile(args.zip_file) as z:
-        if args.list:
-            buffer = StringIO()
-            _stdout = sys.stdout
-            sys.stdout = buffer
-            z.printdir()
-            sys.stdout = _stdout
-            buffer.seek(0)
-            print(convert(buffer.read(), args.from_, args.to))
-            return
-
         if args.password:
             z.setpassword(args.password)
 
         for zinfo in z.infolist():
-            file_name = convert(zinfo.filename, args.from_, args.to)
+            file_name = context.convert(zinfo.filename)
             context.log("Entry: %s" % file_name)
 
             if args.entries and file_name not in args.entries:
@@ -103,9 +101,19 @@ def main(argv=sys.argv):
     filter_group.add_argument('-i', '--include',
                               action='append',
                               help="include filename pattern in RegExp")
+    args = parser.parse_args(argv[1:])
+
     context = UnzipContext()
     context.verbose = args.verbose
-    args = parser.parse_args(argv[1:])
+    context.from_ = args.from_
+    context.to = args.to
+
+    # list mode
+    if args.list:
+        print(unzip_list(context, args.zip_file))
+        return
+
+    # unzip mode
     for _ in range(3):
         try:
             unzip(context, args)

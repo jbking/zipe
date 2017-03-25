@@ -15,6 +15,13 @@ def convert(s, from_, to):
 class Context:
     verbose = False
 
+    # encoding pair
+    from_ = None
+    to = None
+
     def log(self, line):
         if self.verbose:
             print(line, file=sys.stderr)
+
+    def convert(self, src):
+        return convert(src, self.from_, self.to)

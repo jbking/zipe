@@ -6,7 +6,7 @@ import re
 import sys
 import zipfile
 
-from .util import convert, Context
+from .util import Context
 
 
 class ZipContext(Context):
@@ -41,7 +41,7 @@ def zip_(context, args):
     with zipfile.ZipFile(args.zip_file, 'a') as z:
         for entry in args.entries:
             context.log("Archiving: %s" % entry)
-            arcname = convert(entry, args.from_, args.to)
+            arcname = context.convert(entry)
             z.write(entry, arcname)
 
 
@@ -75,6 +75,8 @@ def main(argv=sys.argv):
 
     context = ZipContext()
     context.verbose = args.verbose
+    context.from_ = args.from_
+    context.to = args.to
 
     zip_(context, args)
 
