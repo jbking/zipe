@@ -8,10 +8,14 @@ from io import StringIO
 import sys
 import zipfile
 
-from .util import convert
+from .util import convert, Context
 
 
-def unzip(args):
+class UnzipContext(Context):
+    pass
+
+
+def unzip(context, args):
     if args.include or args.exclude:
         include = bool(args.include)
         patterns = [re.compile(pattern)
@@ -36,13 +40,10 @@ def unzip(args):
 
         for zinfo in z.infolist():
             file_name = convert(zinfo.filename, args.from_, args.to)
-
-            if args.verbose:
-                print("Entry:", file_name, file=sys.stderr)
+            context.log("Entry: %s" % file_name)
 
             if args.entries and file_name not in args.entries:
-                if args.verbose:
-                    print("Not specified:", file_name, file=sys.stderr)
+                context.log("Not specified: %s" % file_name)
                 continue
 
             if file_name.startswith(os.sep) and not args.force:
@@ -57,8 +58,7 @@ def unzip(args):
                         if not include:
                             break
                 else:
-                    if args.verbose:
-                        print("Excluded or not included:", file_name, file=sys.stderr)
+                    context.log("Excluded or not included: %s" % file_name)
                     continue
 
             # mkdir -p
@@ -70,8 +70,7 @@ def unzip(args):
 
             if not file_name.endswith(os.sep):
                 bin = z.read(zinfo)
-                if args.verbose:
-                    print("Extracting:", file_name, file=sys.stderr)
+                context.log("Extracting: %s" % file_name)
                 with open(file_name, 'wb') as f:
                     f.write(bin)
 
@@ -104,17 +103,18 @@ def main(argv=sys.argv):
     filter_group.add_argument('-i', '--include',
                               action='append',
                               help="include filename pattern in RegExp")
+    context = UnzipContext()
+    context.verbose = args.verbose
     args = parser.parse_args(argv[1:])
     for _ in range(3):
         try:
-            unzip(args)
+            unzip(context, args)
             break
         except RuntimeError:
             args.password = getpass.getpass('Password:')
-            if args.verbose:
-                print("Retrying", file=sys.stderr)
+            context.log("Retrying")
     else:
-        print("Failed to unzip", file=sys.stderr)
+        context.log("Failed to unzip")
         sys.exit(1)
 
 

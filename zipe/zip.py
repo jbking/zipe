@@ -6,10 +6,14 @@ import re
 import sys
 import zipfile
 
-from .util import convert
+from .util import convert, Context
 
 
-def zip_(args):
+class ZipContext(Context):
+    pass
+
+
+def zip_(context, args):
     if args.recursive:
         entries = []
         for root_entry in args.entries:
@@ -36,8 +40,7 @@ def zip_(args):
 
     with zipfile.ZipFile(args.zip_file, 'a') as z:
         for entry in args.entries:
-            if args.verbose:
-                print("Archiving:", entry, file=sys.stderr)
+            context.log("Archiving: %s" % entry)
             arcname = convert(entry, args.from_, args.to)
             z.write(entry, arcname)
 
@@ -69,7 +72,11 @@ def main(argv=sys.argv):
                               action='append',
                               help="include file pattern in RegExp")
     args = parser.parse_args(argv[1:])
-    zip_(args)
+
+    context = ZipContext()
+    context.verbose = args.verbose
+
+    zip_(context, args)
 
 
 if __name__ == '__main__':
