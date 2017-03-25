@@ -2,7 +2,6 @@
 from __future__ import print_function
 import argparse
 import os
-import re
 import sys
 import zipfile
 
@@ -10,38 +9,30 @@ from .util import Context
 
 
 class ZipContext(Context):
-    pass
+    recursive = True
+
+    def find_entries(self, original_entries):
+        if self.recursive:
+            entries = []
+            for root_entry in original_entries:
+                for directory, _, files in os.walk(root_entry):
+                    entries.append(directory)
+                    entries.extend([os.path.join(directory, f)
+                                    for f in files])
+            return entries
+        else:
+            return original_entries
 
 
-def zip_(context, args):
-    if args.recursive:
-        entries = []
-        for root_entry in args.entries:
-            for directory, _, files in os.walk(root_entry):
-                entries.append(directory)
-                entries.extend([os.path.join(directory, f)
-                                for f in files])
-        args.entries = entries
+def zip_(context, zip_file, entries):
+    entries = context.find_entries(entries)
 
-    if args.include or args.exclude:
-        include = bool(args.include)
-        patterns = [re.compile(pattern)
-                    for pattern in args.include or args.exclude]
-        filtered = []
-        for entry in args.entries:
-            for pattern in patterns:
-                if pattern.search(entry):
-                    if include:
-                        filtered.append(entry)
-                else:
-                    if not include:
-                        filtered.append(entry)
-        args.entries = filtered
-
-    with zipfile.ZipFile(args.zip_file, 'a') as z:
-        for entry in args.entries:
+    with context.wrap(zipfile.ZipFile(zip_file, 'a')) as z:
+        for entry in entries:
+            if not context.is_target(entry):
+                continue
             context.log("Archiving: %s" % entry)
-            arcname = context.convert(entry)
+            arcname = context.convert_str_to_zip_str(entry)
             z.write(entry, arcname)
 
 
@@ -59,6 +50,8 @@ def main(argv=sys.argv):
     parser.add_argument('-T', '--to', metavar='ENCODING',
                         required=True,
                         help="filename encoding to ")
+    parser.add_argument('-P', '--password',
+                        help="password for encrypted")
     parser.add_argument('-r', '--recursive',
                         action='store_true',
                         help="archive recursively")
@@ -77,8 +70,12 @@ def main(argv=sys.argv):
     context.verbose = args.verbose
     context.from_ = args.from_
     context.to = args.to
+    context.exclude_patterns = args.exclude
+    context.include_patterns = args.include
+    context.password = args.password
+    context.recursive = args.recursive
 
-    zip_(context, args)
+    zip_(context, args.zip_file, args.entries)
 
 
 if __name__ == '__main__':

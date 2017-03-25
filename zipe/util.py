@@ -7,7 +7,6 @@ import unicodedata
 
 class Context:
     verbose = False
-    force = False
     password = None
 
     # encoding pair
@@ -42,20 +41,13 @@ class Context:
 
     def convert_zip_str_to_str(self, s):
         # http://qiita.com/methane/items/8493c10c19ca3584d31d
-        if self.from_ == 'cp932':
-            s = s.encode('cp437')
+        s = s.encode('cp437')
         form = 'NFD' if sys.platform == 'darwin' else 'NFC'
         return unicodedata.normalize(form, s.decode(self.from_))
 
     def convert_str_to_zip_str(self, s):
-        return s.encode(self.to)
-
-    def is_safe_path(self, path):
-        if not path.startswith(os.sep):
-            return True
-        if self.force:
-            return True
-        return False
+        form = 'NFC'
+        return unicodedata.normalize(form, s).encode(self.to).decode('cp437')
 
     def is_target(self, path):
         if self._include_patterns:
