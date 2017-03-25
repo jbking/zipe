@@ -1,5 +1,7 @@
 Look help at each command.
 
+zipe only supports cp932 and utf-8 as encoding to. And no support making encrypt zip archive for now.
+
 ::
 
     usage: zipe [-h] [-F ENCODING] -T ENCODING [-r] [-v]
