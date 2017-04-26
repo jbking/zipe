@@ -45,7 +45,9 @@ def unzip(context, zip_file, entries=None):
                 continue
 
             # mkdir -p
-            os.makedirs(os.path.dirname(file_name), exist_ok=True)
+            dirname = os.path.dirname(file_name)
+            if dirname:
+                os.makedirs(dirname, exist_ok=True)
 
             if not file_name.endswith(os.sep):
                 bin = z.read(zinfo)
