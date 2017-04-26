@@ -24,7 +24,7 @@ def test_zip():
         new_zipfile_path = abspath(new_zipfile_name)
         with TemporaryDirectory() as temp_dir2, push_dir(temp_dir2):
             unzip(unzip_context, new_zipfile_path)
-            actual = list(walk(temp_dir))[1][2]
+            actual = list(walk(temp_dir2))[1][2]
             actual_in_encoded = [s.encode() for s in actual]
             assert expected_part1 in actual
             assert expected_part2 in actual_in_encoded, \
