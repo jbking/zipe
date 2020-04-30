@@ -1,9 +1,10 @@
 from os import walk
 from os.path import abspath
+import sys
 from tempfile import TemporaryDirectory
 from zipe.unzip import unzip, UnzipContext
 from zipe.zip import zip_, ZipContext
-from . import nfd_file_name, push_dir
+from . import nfc_file_name, nfd_file_name, push_dir
 
 
 def test_zip():
@@ -15,7 +16,10 @@ def test_zip():
     zip_context.to = 'cp932'
     zipfile_path = abspath("tests/data/こんにちは.zip")
     expected_part1 = 'こんにちは.txt'
-    expected_part2 = nfd_file_name
+    if sys.platform == 'darwin':
+        expected_part2 = nfd_file_name
+    else:
+        expected_part2 = nfc_file_name
     new_zipfile_name = 'hello.zip'
 
     with TemporaryDirectory() as temp_dir, push_dir(temp_dir):
